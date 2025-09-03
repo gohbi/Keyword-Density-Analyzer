@@ -7,9 +7,9 @@ A lightweight Python app that extracts text from PDFs/DOCX files, calculates how
 Job‑search platforms and Applicant Tracking Systems (ATS) often rank resumes higher when the wording matches the job description, especially when certain keywords appear with a noticeable frequency.
 This tool gives job seekers a fast, visual way to see which terms dominate their resume (or any other document) so they can:
 
-    * Spot missing industry‑specific buzzwords.
-    * Adjust the wording to increase keyword density where it matters.
-    * Avoid over‑stuffing by seeing exact percentages.
+ * Spot missing industry‑specific buzzwords.
+ * Adjust the wording to increase keyword density where it matters.
+ * Avoid over‑stuffing by seeing exact percentages.
 
 The core of the project is a **FastAPI backend** that:
 
@@ -50,17 +50,20 @@ Optional: Launch the Streamlit UI
 
 ## 🛠️ Tech Stack
 
-    | Layer |	Library / Tool |	Reason |
-    | --- | --- | --- |
-    | File parsing |	pdfminer.six, python-docx |	Reliable pure‑Python extraction |
-    | NLP |	spaCy (en_core_web_sm) |	Fast tokenisation, lemmatisation, stop‑word filtering |
-    | API |	FastAPI + Uvicorn |	Async, auto‑generated OpenAPI docs |
-    | Desktop GUI |	PySide6 (Qt) |	Native‑look, cross‑platform |
-    | Web UI |	Streamlit (or React) |	One‑file Python UI for rapid prototyping |
-    | Containerisation |	Docker |	Consistent environment for local & cloud |
-    | Hosting |	Render / Fly.io / Railway (Docker) |	Free tier HTTPS endpoints |
-    | Testing |	pytest |	Guarantees correctness of parsing & counting |
-    | Packaging |	pyinstaller (desktop) |	Single‑executable distribution |
+ | Layer |	Library / Tool |	Reason |
+ | --- | --- | --- |
+ | File parsing |	pdfminer.six, python-docx |	Reliable pure‑Python extraction |
+ | --- | --- | --- |
+ | NLP |	spaCy (en_core_web_sm) |	Fast tokenisation, lemmatisation, stop‑word filtering |
+ | --- | --- | --- |
+ | API |	FastAPI + Uvicorn |	Async, auto‑generated OpenAPI docs |
+ | --- | --- | --- |
+ | Desktop GUI |	PySide6 (Qt) |	Native‑look, cross‑platform |
+ | Web UI |	Streamlit (or React) |	One‑file Python UI for rapid prototyping |
+ | Containerisation |	Docker |	Consistent environment for local & cloud |
+ | Hosting |	Render / Fly.io / Railway (Docker) |	Free tier HTTPS endpoints |
+ | Testing |	pytest |	Guarantees correctness of parsing & counting |
+ | Packaging |	pyinstaller (desktop) |	Single‑executable distribution |
 
 ## 📂 Repository Layout
 
@@ -76,14 +79,17 @@ Optional: Launch the Streamlit UI
     ├─ README.md            # <-- you are here
     └─ LICENSE              # MIT
 
-📊 Example Output
+📊 Example Output:
 
-    | Keyword |	Count |	Density % |
-    | --- | --- | --- |
-    | python |	27 |	4.32 |
-    | data |	19 |	3.04 |
-    | analyst |	12 |	1.92 |
-    | ... |	... |	... |
+ | Keyword |	Count |	Density % |
+ | --- | --- | --- |
+ | python |	27 |	4.32 |
+ | --- | --- | --- |
+ | data |	19 |	3.04 |
+ | --- | --- | --- |
+ | analyst |	12 |	1.92 |
+ | --- | --- | --- |
+ | ... |	... |	... |
 
 The table is returned as JSON from the API and rendered as a sortable grid in the UI.
 🤝 Contributing
