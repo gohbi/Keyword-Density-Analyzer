@@ -53,11 +53,8 @@ Optional: Launch the Streamlit UI
  | Layer |	Library / Tool |	Reason |
  | --- | --- | --- |
  | File parsing |	pdfminer.six, python-docx |	Reliable pure‑Python extraction |
- | --- | --- | --- |
  | NLP |	spaCy (en_core_web_sm) |	Fast tokenisation, lemmatisation, stop‑word filtering |
- | --- | --- | --- |
  | API |	FastAPI + Uvicorn |	Async, auto‑generated OpenAPI docs |
- | --- | --- | --- |
  | Desktop GUI |	PySide6 (Qt) |	Native‑look, cross‑platform |
  | Web UI |	Streamlit (or React) |	One‑file Python UI for rapid prototyping |
  | Containerisation |	Docker |	Consistent environment for local & cloud |
@@ -84,11 +81,8 @@ Optional: Launch the Streamlit UI
  | Keyword |	Count |	Density % |
  | --- | --- | --- |
  | python |	27 |	4.32 |
- | --- | --- | --- |
  | data |	19 |	3.04 |
- | --- | --- | --- |
  | analyst |	12 |	1.92 |
- | --- | --- | --- |
  | ... |	... |	... |
 
 The table is returned as JSON from the API and rendered as a sortable grid in the UI.
