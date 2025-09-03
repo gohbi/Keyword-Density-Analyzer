@@ -57,7 +57,8 @@ Containerisation	Docker	Consistent environment for local & cloud
 Hosting	Render / Fly.io / Railway (Docker)	Free tier HTTPS endpoints
 Testing	pytest	Guarantees correctness of parsing & counting
 Packaging	pyinstaller (desktop)	Single‑executable distribution
-📂 Repository Layout
+
+## 📂 Repository Layout
 
 ├─ api/
 │   ├─ main.py          # FastAPI entry point
@@ -72,11 +73,11 @@ Packaging	pyinstaller (desktop)	Single‑executable distribution
 └─ LICENSE              # MIT
 
 📊 Example Output
-Keyword	Count	Density %
-python	27	4.32
-data	19	3.04
-analyst	12	1.92
-...	...	...
+| Keyword |	Count |	Density % |
+| python |	27 |	4.32 |
+| data |	19 |	3.04 |
+| analyst |	12 |	1.92 |
+| ... |	... |	... |
 
 The table is returned as JSON from the API and rendered as a sortable grid in the UI.
 🤝 Contributing
