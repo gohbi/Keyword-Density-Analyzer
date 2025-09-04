@@ -32,6 +32,9 @@ COPY --chmod=0755 scripts/start.sh /opt/start.sh
 
 USER appuser
 
+RUN echo "=== DEBUG: /opt/start.sh raw bytes ===" && hexdump -C /opt/start.sh || true
+RUN echo "=== DEBUG: ls -l /opt ===" && ls -l /opt
+
 WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
@@ -40,4 +43,4 @@ COPY streamlit_app ./streamlit_app
 EXPOSE 8000
 EXPOSE 8501
 
-ENTRYPOINT ["/opt/start.sh"]
+ENTRYPOINT ["bash", "/opt/start.sh"]
