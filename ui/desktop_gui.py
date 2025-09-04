@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 )
 
 
-API_URL = "https://keyword-analyzer-k8sj.onrender.com"
+API_URL = "http://localhost:8000/analyze"
 
 
 class AnalyzerWindow(QWidget):
