@@ -1,41 +1,47 @@
-import spacy
-import subprocess
+# api/utils.py
+import logging
 import pathlib
 import os
-import logging
 from functools import lru_cache
 
-# The model is already present in the image (see Dockerfile).
-# We only need to load it; no download, no --dest flag.
+import spacy
+
+# ----------------------------------------------------------------------
+# Where the model lives (optional – you can keep it for debugging)
+# ----------------------------------------------------------------------
+# The Dockerfile sets SPACY_DATA to the directory that already contains the model.
+# If you also want a convenient Path object you can read it from the env‑var.
+MODEL_DIR = pathlib.Path(
+    os.getenv("SPACY_DATA", "/opt/venv/lib/python3.12/site-packages")
+)
+
+# ----------------------------------------------------------------------
+# Cached spaCy loader – this is the only thing the rest of the code calls
+# ----------------------------------------------------------------------
 @lru_cache(maxsize=1)
-def get_spacy_nlp():
+def get_spacy_nlp() -> spacy.language.Language:
     """
     Return a cached spaCy Language object.
-    The model was baked into the container at build time, so we simply load it.
+
+    The English model (`en_core_web_sm`) is installed at **build time**
+    (see Dockerfile).  Because the Dockerfile exports ``SPACY_DATA``,
+    ``spacy.load`` automatically finds the model without any extra
+    configuration.
     """
-    # Because we set SPACY_DATA in the Dockerfile, spacy.load will find the model.
+    # A tiny log line helps you see when the model is actually loaded
+    logging.debug("Loading spaCy model from %s", MODEL_DIR)
     return spacy.load("en_core_web_sm")
 
 
-MODEL_DIR = pathlib.Path(os.getenv("SPACY_MODEL_DIR", "/app/api/_spacy_models"))
-
-def _ensure_model_downloaded():
-    """
-    If the directory does not contain a valid spaCy model,
-    invoke `python -m spacy download` to populate it.
-    """
-    if (MODEL_DIR / "meta.json").exists():
-        return  # already there
-
-    logging.info("Downloading spaCy model into %s …", MODEL_DIR)
-    # Ensure the target directory exists and is writable
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Download the *same* model you declared in requirements.txt
-    # (the name must match the pip package, e.g. en_core_web_sm)
-    subprocess.check_call([
-        "python", "-m", "spacy", "download", "en_core_web_sm",
-        "--dest", str(MODEL_DIR)
-    ])
-
-
+# ----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# NOTE: The original ``*ensure*model_downloaded`` function has been
+# completely removed.  It tried to run:
+#
+#   python -m spacy download en_core_web_sm --dest <path>
+#
+# The ``--dest`` flag is no longer supported by spaCy (it caused the
+# “Invalid wheel filename” error you saw).  Because the model is baked
+# into the image, there is nothing to download at request time, so the
+# helper is unnecessary and would only re‑introduce the failure mode.
+# ----------------------------------------------------------------------
