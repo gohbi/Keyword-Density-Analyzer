@@ -24,8 +24,8 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     # <<< NEW LINE >>> Download the English model into the container
-    python -m spacy download en_core_web_sm --direct --quiet \
-        --target /opt/venv/lib/python3.12/site-packages/_spacy_models
+    python -m spacy download en_core_web_sm --direct --quiet
+       
 
 
 # ==============================================================
@@ -47,7 +47,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 
 # ----- NEW: tell spaCy where the bundled model lives --------------------
-ENV SPACY_DATA="/opt/venv/lib/python3.12/site-packages/_spacy_models"
+ENV SPACY_DATA="/opt/venv/lib/python3.12/site-packages"
 
 # -----------------------------------------------------------------
 # Create a **single** non‑root system user (no home, no login shell)
