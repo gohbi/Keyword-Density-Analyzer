@@ -11,6 +11,17 @@ set -euo pipefail
     --server.port 8501 \
     --server.headless true
 EOS
+
+# Make it executable locally (optional, Docker will chmod it anyway)
 chmod +x scripts/start.sh
+
+# *** VERY IMPORTANT *** Convert to Unix LF if you edited on Windows
+# If you have dos2unix installed:
+dos2unix scripts/start.sh
+
+# If you don’t have dos2unix, you can use sed:
+sed -i 's/\r$//' scripts/start.sh
+
 git add scripts/start.sh
 git commit -m "Add supervisor script"
+git push
