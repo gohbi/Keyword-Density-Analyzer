@@ -1,1 +1,26 @@
+# Python byte‑code / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
 venv/
+.env/
+ENV/
+.venv/
+
+# OS / editor artefacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Large data that belongs elsewhere
+*.tar.gz          # e.g. spaCy model archives
+*.pdf
+*.docx
+
+# Build artefacts
+dist/
+build/
+*.egg-info/
