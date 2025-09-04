@@ -21,7 +21,7 @@ COPY .dockerignore .
 # Install Python deps into a virtual‑env inside the image
 RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
-    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+    /opt/venv/bin/pip install --no-cache-dir -vvv -r requirements.txt
 
 # ---------- Stage 2: Runtime ----------
 FROM python:3.12-slim
