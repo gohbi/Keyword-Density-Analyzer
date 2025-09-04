@@ -32,9 +32,10 @@ RUN useradd -m appuser
 COPY --chmod=0755 scripts/launch.sh /opt/launch.sh
 
 # -----------------------------------------------------------------
-# Switch to the non‑root user for the rest of the image
+# Create the folder that spaCy will use and give it to appuser
 # -----------------------------------------------------------------
-USER appuser
+RUN mkdir -p /app/api/_spacy_models && \
+    chown -R appuser:appuser /app/api/_spacy_models
 
 # -----------------------------------------------------------------
 # Application code
@@ -42,6 +43,12 @@ USER appuser
 WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
+
+# -----------------------------------------------------------------
+# Switch to the non‑root user for the rest of the image
+# -----------------------------------------------------------------
+USER appuser
+
 
 # -----------------------------------------------------------------
 # Entrypoint – tini forwards signals, launch.sh starts both services
