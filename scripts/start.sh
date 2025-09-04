@@ -12,8 +12,7 @@ set -euo pipefail
     --server.headless true
 EOS
 
-# If you don’t have dos2unix, you can use sed:
-sed -i 's/\r$//' scripts/start.sh
+dos2unix scripts/start.sh
 
 # Make it executable locally (optional, Docker will chmod it anyway)
 chmod +x scripts/start.sh
