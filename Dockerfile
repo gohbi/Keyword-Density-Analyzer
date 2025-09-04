@@ -1,39 +1,39 @@
 # -------------------------------------------------------------
-# Stage 0 – Build a virtual‑env with all Python deps
+# Stage 0 – Build the virtual‑env with all Python deps
 # -------------------------------------------------------------
 FROM python:3.12-slim AS builder
 
-# Install OS build‑tools that some wheels may need
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc libffi-dev python3-dev build-essential ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create a virtual environment that will be copied later
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Upgrade pip and install the exact versions you need
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # -------------------------------------------------------------
 # Stage 1 – Runtime image (tiny, no build‑tools)
 # -------------------------------------------------------------
 FROM python:3.12-slim
 
-# Install tini – a minimal init system that forwards signals
-# correctly (important for graceful shutdown on Render)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        tini ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# tini gives us a proper PID‑1 and signal forwarding
+RUN apt-get update && apt-get install -y --no-install-recommends tini ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual‑env from the builder stage
+# Copy the prepared virtual‑env
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Create a non‑root user (good practice on Render)
+# -----------------------------------------------------------------
+# Create a non‑root user (still root while we copy files)
+# -----------------------------------------------------------------
 RUN useradd -m appuser
+
+# -----------------------------------------------------------------
+# Copy the launch script **and** set executable bit in one go
+# -----------------------------------------------------------------
+COPY --chmod=0755 scripts/launch.sh /opt/launch.sh
+
+# -----------------------------------------------------------------
+# Switch to the non‑root user for the rest of the image
+# -----------------------------------------------------------------
 USER appuser
 
 # -----------------------------------------------------------------
@@ -42,14 +42,9 @@ USER appuser
 WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
-COPY scripts/launch.sh /opt/launch.sh
-
-# Make the script executable – we are still root at this point
-# (the USER was set *after* the COPY, so this RUN runs as root)
-RUN chmod +x /opt/launch.sh
 
 # -----------------------------------------------------------------
-# Tell Docker to use tini as PID‑1 and then run our launch script
+# Entrypoint – tini forwards signals, launch.sh starts both services
 # -----------------------------------------------------------------
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/opt/launch.sh"]
