@@ -1,49 +1,28 @@
-import subprocess
-import sys
-from pathlib import Path
+# api/utils.py
+import pathlib
 import spacy
+from typing import Any
 
-_MODEL_NAME = "en_core_web_sm"
-_MODEL_PATH = Path(__file__).parent / "_spacy_models" / _MODEL_NAME
+# Path where the model was copied during the Docker build
+MODEL_DIR = pathlib.Path(__file__).parent / "_spacy_models"
 
-
-def _download_model() -> None:
+def get_spacy_nlp() -> spacy.Language:
     """
-    Downloads the spaCy model into a sub‑directory of the package.
-    This runs **inside the container at runtime**, not during the Docker build,
-    so the image stays small and the download happens only once per container start.
+    Load the pre‑bundled spaCy model.
+    If, for any reason, the model directory is missing,
+    raise a clear exception so the caller can return a 500 error.
     """
-    # Ensure the target directory exists
-    _MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if not MODEL_DIR.exists():
+        raise FileNotFoundError(
+            f"SpaCy model directory not found at {MODEL_DIR}. "
+            "Make sure the Dockerfile copies the model correctly."
+        )
 
-    # If the model is already there, skip the download
-    if (_MODEL_PATH / "meta.json").exists():
-        return
-
-    # Run the spaCy download command, pointing it to the local folder
-    subprocess.check_call([
-        sys.executable,
-        "-m",
-        "spacy",
-        "download",
-        _MODEL_NAME,
-        "--direct",
-        "--dest",
-        str(_MODEL_PATH.parent)
-    ])
-
-
-def get_spacy_nlp():
-    """
-    Returns a loaded spaCy Language object.
-    The first call will trigger a download if the model is missing.
-    Subsequent calls reuse the cached object.
-    """
-    global _nlp
+    # The model package name is stored in the directory; we can load it via `spacy.load`.
+    # spaCy will look for a model in the given path.
     try:
-        return _nlp
-    except NameError:
-        # Download if needed, then load from the local path
-        _download_model()
-        _nlp = spacy.load(str(_MODEL_PATH))
-        return _nlp
+        nlp = spacy.load(str(MODEL_DIR))
+        return nlp
+    except Exception as exc:
+        # Re‑raise with a more helpful message
+        raise RuntimeError(f"Failed to load spaCy model from {MODEL_DIR}: {exc}") from exc
