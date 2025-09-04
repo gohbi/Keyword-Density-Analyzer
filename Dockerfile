@@ -35,7 +35,6 @@ USER appuser
 WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
-RUN echo "=== BEFORE chmod ===" && ls -la /opt
 
 
 EXPOSE 8000
