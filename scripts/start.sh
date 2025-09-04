@@ -18,4 +18,7 @@ sed -i 's/\r$//' scripts/start.sh
 # Make it executable locally (optional, Docker will chmod it anyway)
 chmod +x scripts/start.sh
 
+git add scripts/start.sh
+git commit -m "Add start.sh with Unix LF line endings"
+git push
 
