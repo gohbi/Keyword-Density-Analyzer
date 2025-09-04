@@ -64,16 +64,12 @@ EXPOSE 8501
 RUN cat <<'EOF' > /opt/start.sh
 #!/usr/bin/env bash
 set -euo pipefail
-
-# Start FastAPI (uvicorn) in the background
 /opt/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000 &
+/opt/venv/bin/streamlit run streamlit_app/app.py --server.port 8501 --server.headless true
+EOF
 
-# Start Streamlit in the foreground (keeps container alive)
-/opt/venv/bin/streamlit run streamlit_app/app.py \
-    --server.port 8501 \
-    --server.headless true
-EOF \
-    && chmod +x /opt/start.sh
+# Make it executable
+RUN chmod +x /opt/start.sh
 
 # Default command – Render will execute this
 ENTRYPOINT ["/opt/start.sh"]
