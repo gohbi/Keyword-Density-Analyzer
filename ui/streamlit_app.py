@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 from pathlib import Path
 
-API_URL = "http://localhost:8000/analyze"   # adjust if you deploy elsewhere
+API_URL = "https://keyword-analyzer-k8sj.onrender.com"   # adjust if you deploy elsewhere
 
 st.title("Keyword‑Density Analyzer")
 st.caption("Upload a PDF or DOCX and see the most frequent words.")
