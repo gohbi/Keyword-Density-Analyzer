@@ -3,7 +3,7 @@
 # -------------------------------------------------------------
 FROM python:3.12-slim AS builder
 
-# Packages needed to compile any wheels (gcc, etc.)
+# Packages needed to compile wheels (gcc, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc libffi-dev python3-dev build-essential && \
     rm -rf /var/lib/apt/lists/*
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# ---- Install Python deps (requirements.txt must contain the model) ----
+# Install Python dependencies (model is now a normal package)
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -27,11 +27,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         tini ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Bring across the virtual‑env (includes the model)
+# Bring the virtual environment (includes spaCy + model) into the runtime image
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Create non‑root user and give it ownership of the app folder
+# Create a non‑root user
 RUN useradd -m appuser
 
 # Copy launch script (make it executable)
@@ -42,7 +42,7 @@ WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
 
-# Drop privileges
+# Run as the non‑root user
 USER appuser
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
