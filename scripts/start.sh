@@ -25,3 +25,14 @@ sed -i 's/\r$//' scripts/start.sh
 git add scripts/start.sh
 git commit -m "Add supervisor script"
 git push
+
+
+# Local test (optional)
+docker build -t myapp:test .
+
+# If you have Docker Desktop, you can run it locally to double‑check:
+docker run --rm -p 8501:8501 myapp:test
+# Visit http://localhost:8501 – you should see the Streamlit UI.
+
+# Push to Render (or let Render pull from your repo)
+git push origin main   # assuming Render watches this branch
