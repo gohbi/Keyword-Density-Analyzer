@@ -42,6 +42,14 @@ WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
 
+# <<< NEW: give appuser ownership of everything that will be written at runtime >>>
+RUN mkdir -p /app/api/_spacy_models && \
+    chown -R 1000:1000 /app/api/_spacy_models && \
+    chown -R 1000:1000 /app/api   # optional – makes the whole api tree writable
+
+# Create the non‑root user *after* the chown so the UID/GID match
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 # Run as the non‑root user
 USER appuser
 
