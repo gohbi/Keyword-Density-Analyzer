@@ -1,12 +1,10 @@
 services:
   - type: web
-    name: keyword-analyzer
+    name: keyword-density-analyzer
     env: docker
     plan: free
     region: oregon
-    dockerfilePath: Dockerfile          # default, but explicit is nice
-    buildCommand: ""                    # Dockerfile handles everything
-    startCommand: ""                    # Dockerfile ENTRYPOINT/CMD used
+    dockerfilePath: Dockerfile
     autoDeploy: true
     healthCheckPath: /
     envVars:
