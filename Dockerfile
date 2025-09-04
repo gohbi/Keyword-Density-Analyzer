@@ -33,6 +33,7 @@ COPY api ./api
 COPY streamlit_app ./streamlit_app
 COPY scripts/start.sh /opt/start.sh
 RUN echo "=== BEFORE chmod ===" && ls -la /opt
+RUN chmod +x /opt/start.sh
 
 
 EXPOSE 8000
