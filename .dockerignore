@@ -1,10 +1,22 @@
-__pycache__
-*.pyc
+# Git files
 .git
 .gitignore
+
+# Python caches
+__pycache__
+*.pyc
+
+# Local virtual envs
 venv/
 .venv/
-.DS_Store
-*.tar.gz          # spaCy model archives, if any
+.env/
+
+# Large binary assets that should not be shipped
+*.tar.gz
 *.pdf
 *.docx
+
+# IDE / OS files
+.DS_Store
+.idea/
+.vscode/
