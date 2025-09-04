@@ -38,9 +38,4 @@ def _ensure_model_downloaded():
         "--dest", str(MODEL_DIR)
     ])
 
-def get_spacy_nlp():
-    """
-    Load the model from the custom directory (after ensuring it exists).
-    """
-    _ensure_model_downloaded()
-    return spacy.load(str(MODEL_DIR))
+
