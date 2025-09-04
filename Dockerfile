@@ -4,10 +4,10 @@
 # -------------------------------------------------
 FROM python:3.12-slim AS builder
 
-# Install system packages needed for:
+# 1️⃣ Install system packages needed for:
 #    • the Python venv module (python3-venv)
-#    • building any wheels that may require a compiler
-#    • basic CA certificates for HTTPS
+#    • building wheels that may need a compiler
+#    • CA certificates for HTTPS
 RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc \
         libffi-dev \
@@ -17,19 +17,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a virtual‑env in a known location
+# 2️⃣ Create a virtual‑env in a known location
 RUN python3 -m venv /opt/venv
 
-# Upgrade pip inside the venv (ensures we have the latest resolver)
+# 3️⃣ Upgrade pip inside the venv (newest resolver)
 RUN /opt/venv/bin/python -m pip install --upgrade pip
 
-# Copy only the files needed for dependency installation
+# 4️⃣ Set working directory and copy only the files needed for deps
 WORKDIR /app
 COPY requirements.txt .
 COPY .dockerignore .
 
-# Install Python dependencies.
-#    • `--no-cache-dir` keeps the layer small.
+# 5️⃣ Install Python dependencies.
+#    • `--no-cache-dir` keeps the image small.
 #    • `--only-binary=:all:` forces binary wheels (avoids source builds).
 RUN /opt/venv/bin/pip install --no-cache-dir --only-binary=:all: -r requirements.txt
 
