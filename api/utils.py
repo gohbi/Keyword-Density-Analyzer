@@ -1,68 +1,49 @@
-import os
+import subprocess
+import sys
 from pathlib import Path
-from typing import List, Tuple
-
 import spacy
-from collections import Counter
-from pdfminer.high_level import extract_text as pdf_to_text
-from docx import Document
 
-# Load spaCy model once (global)
-nlp = spacy.load("en_core_web_sm")
+_MODEL_NAME = "en_core_web_sm"
+_MODEL_PATH = Path(__file__).parent / "_spacy_models" / _MODEL_NAME
 
 
-def _read_pdf(path: Path) -> str:
-    """Extract raw text from a PDF file."""
-    return pdf_to_text(str(path))
-
-
-def _read_docx(path: Path) -> str:
-    """Extract raw text from a DOCX file."""
-    doc = Document(str(path))
-    return "\n".join(paragraph.text for paragraph in doc.paragraphs)
-
-
-def read_file(file_path: str) -> str:
+def _download_model() -> None:
     """
-    Dispatch based on extension and return the plain‑text content.
-    Supported: .pdf, .docx, .doc
+    Downloads the spaCy model into a sub‑directory of the package.
+    This runs **inside the container at runtime**, not during the Docker build,
+    so the image stays small and the download happens only once per container start.
     """
-    path = Path(file_path)
-    suffix = path.suffix.lower()
+    # Ensure the target directory exists
+    _MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    if suffix == ".pdf":
-        return _read_pdf(path)
-    elif suffix in {".docx", ".doc"}:
-        return _read_docx(path)
-    else:
-        raise ValueError(f"Unsupported file type: {suffix}")
+    # If the model is already there, skip the download
+    if (_MODEL_PATH / "meta.json").exists():
+        return
+
+    # Run the spaCy download command, pointing it to the local folder
+    subprocess.check_call([
+        sys.executable,
+        "-m",
+        "spacy",
+        "download",
+        _MODEL_NAME,
+        "--direct",
+        "--dest",
+        str(_MODEL_PATH.parent)
+    ])
 
 
-def preprocess(text: str) -> List[str]:
+def get_spacy_nlp():
     """
-    Lower‑case, lemmatize, drop stop‑words and non‑alphabetic tokens.
-    Returns a list of cleaned tokens.
+    Returns a loaded spaCy Language object.
+    The first call will trigger a download if the model is missing.
+    Subsequent calls reuse the cached object.
     """
-    doc = nlp(text.lower())
-    tokens = [
-        token.lemma_
-        for token in doc
-        if token.is_alpha and not token.is_stop
-    ]
-    return tokens
-
-
-def keyword_density(tokens: List[str]) -> List[Tuple[str, int, float]]:
-    """
-    Compute raw count and percentage for each token.
-    Returns a list sorted by descending count:
-    [(word, count, density_percent), ...]
-    """
-    total = len(tokens)
-    freq = Counter(tokens)
-
-    result = [
-        (word, cnt, round(cnt / total * 100, 2))
-        for word, cnt in freq.most_common()
-    ]
-    return result
+    global _nlp
+    try:
+        return _nlp
+    except NameError:
+        # Download if needed, then load from the local path
+        _download_model()
+        _nlp = spacy.load(str(_MODEL_PATH))
+        return _nlp
