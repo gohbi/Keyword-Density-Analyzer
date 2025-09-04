@@ -43,4 +43,4 @@ COPY streamlit_app ./streamlit_app
 EXPOSE 8000
 EXPOSE 8501
 
-ENTRYPOINT ["/opt/start.sh"]
+ENTRYPOINT ["/opt/start.sh", "bash"]
