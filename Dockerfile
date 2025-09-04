@@ -61,7 +61,7 @@ EXPOSE 8501
 # Supervisor script – launches both processes
 # -------------------------------------------------
 # NOTE: The closing EOF must be on a line by itself with NO whitespace.
-RUN cat <<'EOF' > /opt/start.sh
+RUN cat <<'EOF'> /opt/start.sh
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -72,7 +72,7 @@ set -euo pipefail
 /opt/venv/bin/streamlit run streamlit_app/app.py \
     --server.port 8501 \
     --server.headless true
-EOF \
+EOF\
     && chmod +x /opt/start.sh
 
 # Default command – Render will execute this
