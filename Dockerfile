@@ -45,6 +45,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+
+# ----- NEW: tell spaCy where the bundled model lives --------------------
+ENV SPACY_DATA="/opt/venv/lib/python3.12/site-packages/_spacy_models"
+
 # -----------------------------------------------------------------
 # Create a **single** non‑root system user (no home, no login shell)
 # -----------------------------------------------------------------
