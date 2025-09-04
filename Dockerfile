@@ -22,7 +22,10 @@ COPY requirements.txt .
 # NOTE: make sure `streamlit` is listed in requirements.txt,
 # e.g.   streamlit==1.38.0
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    # <<< NEW LINE >>> Download the English model into the container
+    python -m spacy download en_core_web_sm --direct --quiet \
+        --target /opt/venv/lib/python3.12/site-packages/_spacy_models
 
 
 # ==============================================================
