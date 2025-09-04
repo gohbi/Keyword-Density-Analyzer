@@ -27,8 +27,8 @@ COPY --from=builder /opt/venv /opt/venv
 
 RUN useradd -m appuser
 
-COPY scripts/start.sh /opt/start.sh
-RUN chown appuser:appuser /opt/start.sh && chmod +x /opt/start.sh
+# Copy and set executable bit in one command
+COPY --chmod=0755 scripts/start.sh /opt/start.sh
 
 USER appuser
 
