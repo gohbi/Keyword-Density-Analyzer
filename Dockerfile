@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc \
         libffi-dev \
         python3-dev \
-        python3-venv \   # <-- crucial for `python -m venv`
+        python3-venv \   # <-- essential for `python -m venv`
         build-essential \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
