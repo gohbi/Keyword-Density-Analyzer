@@ -1,18 +1,20 @@
 # -------------------------------------------------------------
-# Stage 0 – Builder (install everything, including the model)
+# Stage 0 – Builder (install everything, including the spaCy model)
 # -------------------------------------------------------------
 FROM python:3.12-slim AS builder
 
 # Packages needed to compile wheels (gcc, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc libffi-dev python3-dev build-essential && \
+    gcc libffi-dev python3-dev build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-# Virtual environment
+# Create a virtual environment that will be shipped to the runtime image
 RUN python -m venv /opt/venv
+
+# Activate the venv for the rest of the build stage
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies (model is now a normal package)
+# Install Python dependencies (including the spaCy model)
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -24,34 +26,48 @@ FROM python:3.12-slim
 
 # tini for proper signal handling + ca‑certificates
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        tini ca-certificates && \
+    tini ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Bring the virtual environment (includes spaCy + model) into the runtime image
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Create a non‑root user
-RUN useradd -m appuser
+# -----------------------------------------------------------------
+# Create a **single** non‑root system user (no home, no login shell)
+# -----------------------------------------------------------------
+RUN groupadd -r appuser && \
+    useradd -r -g appuser appuser
 
+# -----------------------------------------------------------------
 # Copy launch script (make it executable)
+# -----------------------------------------------------------------
 COPY --chmod=0755 scripts/launch.sh /opt/launch.sh
 
+# -----------------------------------------------------------------
 # Copy the application code
+# -----------------------------------------------------------------
 WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
 
-# <<< NEW: give appuser ownership of everything that will be written at runtime >>>
+# -----------------------------------------------------------------
+# Give the newly‑created user ownership of everything it may write to
+# -----------------------------------------------------------------
+# The directory that FastAPI creates at start‑up
 RUN mkdir -p /app/api/_spacy_models && \
-    chown -R 1000:1000 /app/api/_spacy_models && \
-    chown -R 1000:1000 /app/api   # optional – makes the whole api tree writable
+    chown -R appuser:appuser /app/api/_spacy_models && \
+    # (optional) make the whole api tree writable – useful if you ever
+    # generate additional files under /app/api at runtime
+    chown -R appuser:appuser /app/api
 
-# Create the non‑root user *after* the chown so the UID/GID match
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
-# Run as the non‑root user
+# -----------------------------------------------------------------
+# Drop privileges – run everything as the non‑root user
+# -----------------------------------------------------------------
 USER appuser
 
+# -----------------------------------------------------------------
+# Entrypoint / CMD
+# -----------------------------------------------------------------
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/opt/launch.sh"]
