@@ -1,5 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
+import os
+import pathlib
 import pandas as pd
 import io
 import logging
@@ -8,6 +10,13 @@ import logging
 from .utils import get_spacy_nlp
 
 app = FastAPI(title="Keyword Density Analyzer")
+
+
+@app.on_event("startup")
+def create_spacy_dir():
+    spacy_path = pathlib.Path("/app/api/_spacy_models")
+    spacy_path.mkdir(parents=True, exist_ok=True)
+    # Ensure the directory is owned by the current user (appuser)
 
 # ----------------------------------------------------------------------
 # Helper: read a file (PDF, DOCX, TXT) and return its text as a string
