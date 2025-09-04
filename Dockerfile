@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+RUN /opt/venv/bin/pip install --only-binary=:all: -r requirements.txt
+
 # Create a non‑root user (Render likes this)
 RUN useradd -m appuser
 
