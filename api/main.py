@@ -1,65 +1,78 @@
-import os
-import uuid
-from pathlib import Path
-
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
+import pandas as pd
+import io
+import logging
 
-from .utils import read_file, preprocess, keyword_density
+# Import the helper that lazily ensures the spaCy model exists
+from .utils import get_spacy_nlp
 
-app = FastAPI(
-    title="Keyword‑Density Analyzer",
-    description="Upload a PDF/DOCX and receive a word‑frequency report.",
-    version="0.1.0",
-)
+app = FastAPI(title="Keyword Density Analyzer")
 
+# ----------------------------------------------------------------------
+# Helper: read a file (PDF, DOCX, TXT) and return its text as a string
+# ----------------------------------------------------------------------
+def _read_file(file_bytes: bytes, filename: str) -> str:
+    lower_name = filename.lower()
+    if lower_name.endswith(".pdf"):
+        from pdfminer.high_level import extract_text
+        return extract_text(io.BytesIO(file_bytes))
+    elif lower_name.endswith(".docx"):
+        from docx import Document
+        doc = Document(io.BytesIO(file_bytes))
+        return "\n".join(p.text for p in doc.paragraphs)
+    elif lower_name.endswith(".txt"):
+        return file_bytes.decode(errors="replace")
+    else:
+        raise ValueError(f"Unsupported file type: {filename}")
 
-UPLOAD_DIR = Path("./tmp_uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
-
-
+# ----------------------------------------------------------------------
+# Endpoint – analyse a single uploaded file
+# ----------------------------------------------------------------------
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
-    """
-    Accept a PDF or DOCX, compute keyword density,
-    and return JSON with the top words.
-    """
-    # Basic validation
-    if file.content_type not in {
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/msword",
-    }:
-        raise HTTPException(status_code=400, detail="Unsupported file type.")
-
-    # Store temporarily on disk (required for pdfminer / python-docx)
-    suffix = Path(file.filename).suffix.lower()
-    temp_name = f"{uuid.uuid4()}{suffix}"
-    temp_path = UPLOAD_DIR / temp_name
-
-    # Write the uploaded bytes to the temp file
-    with open(temp_path, "wb") as out_file:
-        content = await file.read()
-        out_file.write(content)
-
     try:
-        raw_text = read_file(str(temp_path))
-        tokens = preprocess(raw_text)
-        density = keyword_density(tokens)
+        # 1️⃣ Read the raw bytes
+        raw_bytes = await file.read()
 
-        # Return only the top 30 entries (adjust as you like)
-        top_n = density[:30]
+        # 2️⃣ Extract plain text
+        text = _read_file(raw_bytes, file.filename)
 
-        response = {
-            "filename": file.filename,
-            "total_words": len(tokens),
+        # 3️⃣ Load spaCy model (downloaded lazily on first use)
+        nlp = get_spacy_nlp()
+
+        # 4️⃣ Tokenise and compute frequencies
+        doc = nlp(text)
+        tokens = [t.text.lower() for t in doc if not t.is_stop and not t.is_punct and not t.is_space]
+
+        if not tokens:
+            return JSONResponse(
+                status_code=200,
+                content={"message": "No meaningful tokens found in the document."}
+            )
+
+        freq_series = pd.Series(tokens).value_counts().astype(int)
+        total_words = len(tokens)
+
+        # 5️⃣ Build the response payload
+        result = {
+            "total_words": total_words,
+            "unique_words": int(freq_series.shape[0]),
             "top_keywords": [
-                {"word": w, "count": c, "density_pct": d} for w, c, d in top_n
-            ],
+                {"keyword": kw, "count": int(cnt), "percentage": round((cnt / total_words) * 100, 2)}
+                for kw, cnt in freq_series.head(20).items()
+            ]
         }
-        return JSONResponse(content=response)
 
-    finally:
-        # Clean up the temporary file
-        if temp_path.exists():
-            temp_path.unlink()
+        return JSONResponse(status_code=200, content=result)
+
+    except Exception as exc:
+        logging.exception("Analysis failed")
+        raise HTTPException(status_code=400, detail=str(exc))
+
+# ----------------------------------------------------------------------
+# Simple health‑check endpoint (Render hits “/” by default)
+# ----------------------------------------------------------------------
+@app.get("/")
+async def health():
+    return {"status": "ok"}
