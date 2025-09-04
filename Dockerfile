@@ -51,6 +51,8 @@ WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
 
+# After copying the code
+EXPOSE 8501 8502
 # -----------------------------------------------------------------
 # Give the newly‑created user ownership of everything it may write to
 # -----------------------------------------------------------------
