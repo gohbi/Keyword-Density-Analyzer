@@ -72,8 +72,7 @@ set -euo pipefail
 /opt/venv/bin/streamlit run streamlit_app/app.py \
     --server.port 8501 \
     --server.headless true
-EOF
-\
+EOF \
     && chmod +x /opt/start.sh
 
 # Default command – Render will execute this
