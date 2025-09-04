@@ -8,14 +8,7 @@ FROM python:3.12-slim AS builder
 #    • the Python venv module (python3-venv)
 #    • building wheels that may need a compiler
 #    • CA certificates for HTTPS
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc \
-        libffi-dev \
-        python3-dev \
-        python3-venv \   # <-- essential for `python -m venv`
-        build-essential \
-        ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \ gcc \ libffi-dev \ python3-dev \ python3-venv \ build-essential \ ca-certificates \ && rm -rf /var/lib/apt/lists/*
 
 # 2️⃣ Create a virtual‑env in a known location
 RUN python3 -m venv /opt/venv
