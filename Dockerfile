@@ -3,7 +3,7 @@
 # -------------------------------------------------
 FROM python:3.12-slim AS builder
 
-# Install OS packages needed for Python venv + compiled wheels
+# OS packages needed for Python venv + compiled wheels
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libffi-dev \
@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual environment from the builder
+# Copy the virtual environment from the builder stage
 COPY --from=builder /opt/venv /opt/venv
 
 # Create a non‑root user (Render recommendation)
@@ -52,7 +52,7 @@ COPY api ./api
 COPY streamlit_app ./streamlit_app
 
 # Expose the ports Render will forward:
-#   8000 – FastAPI (uvicorn) – internal only
+#   8000 – FastAPI (internal only)
 #   8501 – Streamlit (public UI)
 EXPOSE 8000
 EXPOSE 8501
@@ -60,6 +60,7 @@ EXPOSE 8501
 # -------------------------------------------------
 # Supervisor script – launches both processes
 # -------------------------------------------------
+# NOTE: The closing EOF must be on a line by itself with NO whitespace.
 RUN cat <<'EOF' > /opt/start.sh
 #!/usr/bin/env bash
 set -euo pipefail
