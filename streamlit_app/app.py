@@ -1,11 +1,11 @@
-# --------------------------------------------------------------
 # streamlit_app/app.py
 # --------------------------------------------------------------
-
-import streamlit as st
-import httpx
 import os
 from pathlib import Path
+
+import httpx
+import pandas as pd
+import streamlit as st
 
 # ----------------------------------------------------------------------
 # Helper: call the FastAPI backend
@@ -15,8 +15,9 @@ def analyze_file(file_bytes: bytes, filename: str):
     Sends the uploaded file to the FastAPI /analyze endpoint.
     Returns the parsed JSON response (or raises an exception).
     """
-    # Render injects the port via the $PORT env‑var; default to 8501 for local dev.
-    backend_port = os.getenv("PORT", "8501")
+    # Render injects the FastAPI port via $FASTAPI_PORT;
+    # default to 8501 for local development.
+    backend_port = os.getenv("FASTAPI_PORT", "8501")
     url = f"http://localhost:{backend_port}/analyze"
 
     files = {"file": (filename, file_bytes)}
@@ -30,6 +31,7 @@ def analyze_file(file_bytes: bytes, filename: str):
 # Streamlit layout
 # ----------------------------------------------------------------------
 st.set_page_config(page_title="Keyword‑Density Analyzer", layout="centered")
+
 st.title("🔍 Keyword‑Density Analyzer")
 st.write(
     """
@@ -75,12 +77,10 @@ if uploaded:
         st.info("No keywords from the configured list were found in the document.")
     else:
         # Turn the dict into a sorted DataFrame for pretty rendering
-        import pandas as pd
-
-        df = pd.DataFrame(
-            list(density_dict.items()), columns=["Keyword", "Density (%)"]
-        ).sort_values(by="Density (%)", ascending=False)
-
+        df = (
+            pd.DataFrame(list(density_dict.items()), columns=["Keyword", "Density (%)"])
+            .sort_values(by="Density (%)", ascending=False)
+        )
         # Streamlit will display a nice sortable table
         st.dataframe(df, hide_index=True)
 
