@@ -1,46 +1,55 @@
-# -------------------------------------------------
-# Stage 1 – Builder (install OS deps, create venv)
-# -------------------------------------------------
+# -------------------------------------------------------------
+# Stage 0 – Build a virtual‑env with all Python deps
+# -------------------------------------------------------------
 FROM python:3.12-slim AS builder
 
+# Install OS build‑tools that some wheels may need
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libffi-dev python3-dev python3-venv build-essential ca-certificates \
- && rm -rf /var/lib/apt/lists/*
+        gcc libffi-dev python3-dev build-essential ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv /opt/venv
-RUN /opt/venv/bin/python -m pip install --upgrade pip
+# Create a virtual environment that will be copied later
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-WORKDIR /app
+# Upgrade pip and install the exact versions you need
 COPY requirements.txt .
-COPY .dockerignore .
-RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# -------------------------------------------------
-# Stage 2 – Runtime (tiny image, just the venv + code)
-# -------------------------------------------------
+# -------------------------------------------------------------
+# Stage 1 – Runtime image (tiny, no build‑tools)
+# -------------------------------------------------------------
 FROM python:3.12-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
- && rm -rf /var/lib/apt/lists/*
+# Install tini – a minimal init system that forwards signals
+# correctly (important for graceful shutdown on Render)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        tini ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copy the virtual‑env from the builder stage
 COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
+# Create a non‑root user (good practice on Render)
 RUN useradd -m appuser
-
-# Copy and set executable bit in one command
-COPY --chmod=0755 scripts/start.sh /opt/start.sh
-
 USER appuser
 
-RUN echo "=== DEBUG: /opt/start.sh raw bytes ===" && hexdump -C /opt/start.sh || true
-RUN echo "=== DEBUG: ls -l /opt ===" && ls -l /opt
-
+# -----------------------------------------------------------------
+# Application code
+# -----------------------------------------------------------------
 WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
+COPY scripts/launch.sh /opt/launch.sh
 
+# Make the script executable – we are still root at this point
+# (the USER was set *after* the COPY, so this RUN runs as root)
+RUN chmod +x /opt/launch.sh
 
-EXPOSE 8000
-EXPOSE 8501
-
-ENTRYPOINT ["bash", "/opt/start.sh"]
+# -----------------------------------------------------------------
+# Tell Docker to use tini as PID‑1 and then run our launch script
+# -----------------------------------------------------------------
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/opt/launch.sh"]
