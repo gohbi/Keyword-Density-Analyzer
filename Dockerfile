@@ -1,29 +1,52 @@
-# ---- Builder stage ---------------------------------------------------------
+# ---------- Stage 1: Build ----------
 FROM python:3.12-slim AS builder
 
+# Install OS deps needed for building wheels (gcc, libffi, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        libffi-dev \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non‑root user (Render recommends this)
+RUN useradd -m appuser
+
+# Set workdir for the builder
 WORKDIR /app
 
-# Install build‑time deps (gcc, libffi…) only if needed for wheels
-RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
-
+# Copy only the files needed for installing deps
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+COPY .dockerignore .
 
-# ---- Runtime stage ---------------------------------------------------------
+# Install Python deps into a virtual‑env inside the image
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# ---------- Stage 2: Runtime ----------
 FROM python:3.12-slim
 
+# OS deps required at runtime (none for this project, but keep it minimal)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the venv from the builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Create a non‑root user (same UID/GID as builder)
+RUN useradd -m appuser
+USER appuser
+
+# Set workdir for the runtime container
 WORKDIR /app
 
-# Copy only the installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
-# Copy our source code
+# Copy only the source code (skip venv, tests, etc.)
 COPY api ./api
-COPY tmp_uploads ./tmp_uploads   
-# empty folder, will be created at runtime
 
+# Expose the port Render expects (default 10000 → we forward to 8000)
 EXPOSE 8000
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Startup command – Render will run this as PID 1
+ENTRYPOINT ["/opt/venv/bin/uvicorn"]
+CMD ["api.main:app", "--host", "0.0.0.0", "--port", "8000"]
