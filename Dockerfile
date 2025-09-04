@@ -26,11 +26,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # -----------------------------------------------------------------
 RUN useradd -m appuser
 
-# -----------------------------------------------------------------
-# Pre‑create the spaCy model directory and give ownership
-# -----------------------------------------------------------------
-RUN mkdir -p /app/api/_spacy_models && \
-    chown -R appuser:appuser /app/api/_spacy_models
+# Give appuser ownership of everything under /app/api
+RUN mkdir -p /app/api && \
+    chown -R appuser:appuser /app/api
 
 # -----------------------------------------------------------------
 # Copy the application code (still root)
