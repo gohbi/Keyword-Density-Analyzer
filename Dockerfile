@@ -11,20 +11,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Create a virtual environment that will be shipped to the runtime image
 RUN python -m venv /opt/venv
-
-# Activate the venv for the rest of the build stage
 ENV PATH="/opt/venv/bin:$PATH"
-
-# -----------------------------------------------------------------
-# Install Python dependencies (including the spaCy model)
-# -----------------------------------------------------------------
+# -------------------------------------------------------------
+# Install Python dependencies (including spaCy itself)
+# -------------------------------------------------------------
 COPY requirements.txt .
-# NOTE: make sure `streamlit` is listed in requirements.txt,
-# e.g.   streamlit==1.38.0
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
-    # <<< NEW LINE >>> Download the English model into the container
-    python -m spacy download en_core_web_sm --direct --quiet
+    # ----- NEW: download the English model into the venv -----------------
+    # No --direct, no --target, no --dest – just let spaCy put the model
+    # where it belongs (inside the virtual‑env site‑packages).
+    python -m spacy download en_core_web_sm --quiet
        
 
 
