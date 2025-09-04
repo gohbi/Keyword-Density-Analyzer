@@ -26,14 +26,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 COPY --from=builder /opt/venv /opt/venv
 
 RUN useradd -m appuser
+
+COPY scripts/start.sh /opt/start.sh
+RUN chown appuser:appuser /opt/start.sh && chmod +x /opt/start.sh
+
 USER appuser
 
 WORKDIR /app
 COPY api ./api
 COPY streamlit_app ./streamlit_app
-COPY scripts/start.sh /opt/start.sh
 RUN echo "=== BEFORE chmod ===" && ls -la /opt
-RUN chmod +x /opt/start.sh
 
 
 EXPOSE 8000
