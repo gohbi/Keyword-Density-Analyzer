@@ -3,7 +3,7 @@
 # -------------------------------------------------
 FROM python:3.12-slim AS builder
 
-# Install OS packages needed for Python venv + any compiled wheels
+# Install OS packages needed for Python venv + compiled wheels
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libffi-dev \
@@ -24,7 +24,7 @@ WORKDIR /app
 COPY requirements.txt .
 COPY .dockerignore .
 
-# Install all Python dependencies (including Streamlit)
+# Install all Python dependencies (FastAPI + Streamlit)
 RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # -------------------------------------------------
@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy the virtual environment from the builder
 COPY --from=builder /opt/venv /opt/venv
 
-# Create a non‑root user (Render recommends this)
+# Create a non‑root user (Render recommendation)
 RUN useradd -m appuser
 USER appuser
 
@@ -52,22 +52,27 @@ COPY api ./api
 COPY streamlit_app ./streamlit_app
 
 # Expose the ports Render will forward:
-#   8000 – FastAPI (uvicorn)
-#   8501 – Streamlit (default)
+#   8000 – FastAPI (uvicorn) – internal only
+#   8501 – Streamlit (public UI)
 EXPOSE 8000
 EXPOSE 8501
 
 # -------------------------------------------------
 # Supervisor script – launches both processes
 # -------------------------------------------------
-# Save the script inside the image
-RUN echo '#!/usr/bin/env bash\n\
-set -euo pipefail\n\
-# Start FastAPI in background\n\
-/opt/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000 &\n\
-# Start Streamlit (foreground, so Docker keeps running)\n\
-exec /opt/venv/bin/streamlit run streamlit_app/app.py --server.port 8501 --server.headless true' \
-> /opt/start.sh && chmod +x /opt/start.sh
+RUN cat <<'EOF' > /opt/start.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Start FastAPI (uvicorn) in the background
+/opt/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000 &
+
+# Start Streamlit in the foreground (keeps container alive)
+/opt/venv/bin/streamlit run streamlit_app/app.py \
+    --server.port 8501 \
+    --server.headless true
+EOF \
+    && chmod +x /opt/start.sh
 
 # Default command – Render will execute this
 ENTRYPOINT ["/opt/start.sh"]
