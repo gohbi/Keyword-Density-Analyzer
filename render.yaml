@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: keyword-analyzer
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: Dockerfile          # default, but explicit is nice
+    buildCommand: ""                    # Dockerfile handles everything
+    startCommand: ""                    # Dockerfile ENTRYPOINT/CMD used
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "8000"
