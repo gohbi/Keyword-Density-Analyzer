@@ -6,6 +6,80 @@ from functools import lru_cache
 
 import spacy
 
+# ──────────────────────────────────────────────────────────────
+"""
+Utility helpers for the Keyword‑Density Analyzer.
+
+* `tokenize(text)` – split a string into lowercase word tokens.
+* `compute_frequencies(tokens, min_count)` – count tokens, keep only
+  those that appear at least `min_count` times, and calculate density.
+"""
+
+import re
+from collections import Counter
+from typing import List, Dict
+
+# ------------------------------------------------------------------
+# Tokeniser – pure‑Python, no external model required.
+# ------------------------------------------------------------------
+_WORD_RE = re.compile(r"\b\w+\b", flags=re.UNICODE)
+
+
+def tokenize(text: str) -> List[str]:
+    """
+    Return a list of lowercase word tokens.
+    • Keeps only alphanumeric “words” (punctuation, emojis, etc. are dropped).
+    • Works for any language that uses Unicode word characters.
+    """
+    return [tok.lower() for tok in _WORD_RE.findall(text)]
+
+
+# ------------------------------------------------------------------
+# Frequency calculator + filter.
+# ------------------------------------------------------------------
+def compute_frequencies(tokens: List[str], min_count: int = 3) -> List[Dict]:
+    """
+    From a list of tokens produce the JSON payload expected by the UI.
+
+    Parameters
+    ----------
+    tokens : List[str]
+        All word tokens from the document (already lower‑cased).
+    min_count : int, default = 3
+        Minimum number of occurrences required for a word to be included.
+
+    Returns
+    -------
+    List[Dict] – each dict contains:
+        * word   – the token
+        * count  – how many times it appeared
+        * density – percentage of total tokens (rounded to 2 dp)
+    """
+    total = len(tokens)
+    if total == 0:                     # empty document → empty result
+        return []
+
+    # Count every token
+    freq = Counter(tokens)
+
+    # Keep only words that meet the threshold
+    filtered = [(w, c) for w, c in freq.items() if c >= min_count]
+
+    # Sort by descending count (most frequent first)
+    filtered.sort(key=lambda pair: pair[1], reverse=True)
+
+    # Build the final list of dicts
+    result = [
+        {
+            "word": w,
+            "count": c,
+            "density": round((c / total) * 100, 2)   # percent, two decimals
+        }
+        for w, c in filtered
+    ]
+
+    return result
+
 # ----------------------------------------------------------------------
 # Where the model lives (optional – you can keep it for debugging)
 # ----------------------------------------------------------------------
