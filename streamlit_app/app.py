@@ -52,7 +52,7 @@ uploaded_file = st.file_uploader(
 # ----------------------------------------------------------------------
 # Helper: call the FastAPI backend
 # ----------------------------------------------------------------------
-def analyze_file(file_bytes: bytes, filename: str): -> list[dict]:
+def analyze_file(file_bytes: bytes, filename: str) -> list[dict]:
     """
     Sends the uploaded file to the FastAPI /analyze endpoint.
     Returns the parsed JSON response (or raises an exception).
