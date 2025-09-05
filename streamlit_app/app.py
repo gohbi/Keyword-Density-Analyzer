@@ -98,14 +98,14 @@ if uploaded_file is not None:
     #   Render the frequency table
     # ------------------------------------------------------------------
     if not result:
-        st.info("No words met the selected minimum occurrence threshold.")
+        st.info("No words met the selected minimum‑occurrence threshold.")
     else:
-        df = pd.DataFrame(result)               # columns: word, count, density
-        # Sort by count descending for nicer UX
+        df = pd.DataFrame(result)                       # columns: word, count, density
+        df = df[df["count"] >= min_occurrences]         # extra client‑side filter
         df = df.sort_values(by="count", ascending=False)
-        st.subheader("Word Frequency (≥ threshold)")
+
+        st.subheader(f"Word frequency (≥ {min_occurrences})")
         st.dataframe(df, hide_index=True)
-        
     # --------------------------------------------------------------
     #  Optional raw JSON view (useful for debugging)
     # --------------------------------------------------------------
