@@ -23,7 +23,7 @@ min_occurrences = st.slider(
     help="Words with fewer occurrences will be hidden."
 )
 
-uploaded_file = st.file_uploader("Upload a .txt file", type=["txt"])
+uploaded_file = st.file_uploader("Choose a file", type=["txt", "pdf", "docx", "odt"])
 
 if uploaded_file is not None:
     # Send the file to the FastAPI backend
