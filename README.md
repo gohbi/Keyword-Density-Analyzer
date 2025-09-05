@@ -42,13 +42,13 @@ The Keyword‑Density Analyzer is a Lumo‑powered micro‑service that:
 All processing runs inside the container – no external APIs, no telemetry. Encryption is end‑to‑end (the file never leaves the container).
 
 
-🎯 Why This Project Exists
+## 🎯 Why This Project Exists
 
 1. **Showcase rapid learning** – I built the entire stack (PDF parsing, NLP, async API, GUI, Docker) from scratch, with the use of AI, while mastering the MERN‑style workflow in Python.
 2. **Solve a real pain point** – Many candidates tweak their resumes blindly. By exposing the actual keyword density, the app empowers users to make data‑driven edits that align with ATS expectations.
 3. **Demonstrate full‑stack competence** – Recruiters can see a clean, documented codebase, meaningful commit history, unit tests, and a deployable Docker image—all hallmarks of production‑ready software.
 
-✨ Key Features
+## ✨ Key Features
 | ✅ Feature |	Description |
 | --- | --- |
 |Multi‑format support |	.txt (any encoding), .pdf, .docx, .odt. |
@@ -60,7 +60,8 @@ All processing runs inside the container – no external APIs, no telemetry. Enc
 |Docker‑first |	One‑step build (docker build .) produces a ready‑to‑run image. |
 |Health‑check endpoint |	Render’s auto‑restart uses GET /. |
 
-🔨 Architecture
+## 🔨 Architecture
+
 ┌─────────────────────┐          ┌─────────────────────┐
 │   Streamlit Front‑   │  HTTP    │   FastAPI Backend   │
 │   end (UI)          │◀──────▶ │   (uvicorn)         │
@@ -82,10 +83,11 @@ Prerequisites
     *Docker (optional, but recommended)
     *git
 
-Clone the repo
+## Clone the repo
 
     git clone https://github.com/yourorg/keyword-density-analyzer.git
     cd keyword-density-analyzer
+    
 Option A – Run with Docker (quickest)
 
     docker build -t keyword-analyzer .
@@ -145,7 +147,7 @@ Option B – Run locally without Docker
 
 
 
-📡 Deploying to Render (or any Docker host)
+## 📡 Deploying to Render (or any Docker host)
    1. Create a new “Web Service” on Render.
    2. Connect your GitHub repo (the same repo you cloned locally).
    3. Set the build command (Render detects the Dockerfile automatically).
@@ -159,7 +161,7 @@ Option B – Run locally without Docker
     streamlit run streamlit_app/app.py --server.port $PORT
 
 
-🎇 API Reference
+## 🎇 API Reference
 | Method |	Path |	Query Params |	Request Body |	Description |
 | --- | --- | --- | --- | --- |
 | POST |	/analyze |	min_count (int, default = 3) |	multipart/form-data with field file (binary) |	Extracts text, tokenises, computes frequencies, returns only words whose count ≥ min_count. |
@@ -176,7 +178,7 @@ Response schema (List[Dict]):
       …
     ]
 
-🏆Frontend Details (Streamlit UI)
+## 🏆Frontend Details (Streamlit UI)
 
 Key UI components (found in streamlit_app/app.py):
 | Component |	Purpose |
@@ -191,7 +193,7 @@ Key UI components (found in streamlit_app/app.py):
 Dynamic behaviour – every time the slider moves or a new file is uploaded, Streamlit re‑runs the script, re‑fetches data from the backend, and updates the table automatically.
 
 
-🧨 File‑type handling & Text Extraction
+## 🧨 File‑type handling & Text Extraction
 
 All heavy lifting lives in api/text_extractor.py. The public function:
 
@@ -213,7 +215,7 @@ Dependencies (added to requirements.txt):
 These libraries are lightweight and have no external system dependencies, making the Docker image stay under 200 MB.
 
 
-⚙ Configuration & Environment Variables
+## ⚙ Configuration & Environment Variables
 | Variable |	Default |	Description |
 | --- | --- | --- |
 | FASTAPI_PORT |	8000 |	Port on which the FastAPI server listens. Used by the Streamlit app to build the request URL. |
@@ -224,8 +226,8 @@ These libraries are lightweight and have no external system dependencies, making
 You can add more env vars (e.g., LOG_LEVEL) without touching the code – just read them via os.getenv.
 
 
-🔧 Testing & Development Tips
-    * Unit tests – place them under tests/. Example for the extractor:
+## 🔧 Testing & Development Tips
+   * Unit tests – place them under tests/. Example for the extractor:
 
     def test_txt_utf8(tmp_path):
         txt = tmp_path / "sample.txt"
@@ -238,7 +240,7 @@ You can add more env vars (e.g., LOG_LEVEL) without touching the code – just r
 * Debugging the backend – add logging.basicConfig(level=logging.DEBUG) at the top of api/main.py to see incoming requests in the console.
 
 
-🛠️ Troubleshooting
+## 🛠️ Troubleshooting
 | Symptom |	Likely cause |	Fix |
 | --- | --- | --- |
 | Invalid requirement: chardet=5.2.0 (Docker build fails) |	Wrong operator in requirements.txt. |	Use chardet==5.2.0 (double equals). |
@@ -250,7 +252,7 @@ You can add more env vars (e.g., LOG_LEVEL) without touching the code – just r
 
 
 
-📊 Example Output:
+## 📊 Example Output:
 
  | Keyword |	Count |	Density % |
  | --- | --- | --- |
@@ -269,7 +271,7 @@ The table is returned as JSON from the API and rendered as a sortable grid in th
 
 Please keep the code PEP 8 compliant and add unit tests for new functionality. 
 
-📜 License & Credits
+## 📜 License & Credits
 
 
 * License: MIT – feel free to fork, modify, and deploy.
@@ -280,14 +282,14 @@ Please keep the code PEP 8 compliant and add unit tests for new functionality.
 * Powered by: Lumo (Proton) – privacy‑first AI platform.
 
 
-🎉 Ready to go!
+## 🎉 Ready to go!
     1. Clone → Build → Deploy (Docker or Render).
     2. Open the UI, upload a document, move the slider, and watch the word‑frequency table update in real time.
 
 If you add new file formats, just extend api/text_extractor.py with a new helper and update the if ext == … dispatch block. The rest of the stack will pick it up automatically.
 
 
-🙋‍♂️ Author
+## 🙋‍♂️ Author
 
 Reanna Francis – Passionate self-taught full‑stack developer focused on practical AI/NLP tools for career empowerment.
 [GitHub Profile](https://github.com/gohbi) | [LinkedIn](www.linkedin.com/in/reannaf)
