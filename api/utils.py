@@ -1,24 +1,24 @@
 # api/utils.py
-import logging
-import pathlib
-import os
-from functools import lru_cache
-
-import spacy
-
-# ──────────────────────────────────────────────────────────────
 """
 Utility helpers for the Keyword‑Density Analyzer.
 
-* `tokenize(text)` – split a string into lowercase word tokens.
-* `compute_frequencies(tokens, min_count)` – count tokens, keep only
+- `tokenize(text)` – split a string into lowercase word tokens.
+- `compute_frequencies(tokens, min_count)` – count tokens, keep only
   those that appear at least `min_count` times, and calculate density.
+- `get_spacy_nlp()` – cached spaCy model loader (used by other parts
+  of the app, kept unchanged).
 """
 
+
+import logging
+import os
+import pathlib
 import re
 from collections import Counter
+from functools import lru_cache
 from typing import List, Dict
 
+import spacy
 # ------------------------------------------------------------------
 # Tokeniser – pure‑Python, no external model required.
 # ------------------------------------------------------------------
@@ -107,15 +107,4 @@ def get_spacy_nlp() -> spacy.language.Language:
     return spacy.load("en_core_web_sm")
 
 
-# ----------------------------------------------------------------------
-# ----------------------------------------------------------------------
-# NOTE: The original ``*ensure*model_downloaded`` function has been
-# completely removed.  It tried to run:
-#
-#   python -m spacy download en_core_web_sm --dest <path>
-#
-# The ``--dest`` flag is no longer supported by spaCy (it caused the
-# “Invalid wheel filename” error you saw).  Because the model is baked
-# into the image, there is nothing to download at request time, so the
-# helper is unnecessary and would only re‑introduce the failure mode.
-# ----------------------------------------------------------------------
+
