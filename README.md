@@ -2,6 +2,9 @@
 Easily find the keyword density of a given document. Helps with resume optimization. 
 A lightweight Python app that extracts text from PDFs/DOCX files, calculates how often each word appears, and presents the results as a clear density report.
 
+### Visit the functional app:
+[Key Density Analyzer](https://keyword-analyzer-3i9f.onrender.com)
+
 ## 📄 Project Overview
 
 Job‑search platforms and Applicant Tracking Systems (ATS) often rank resumes higher when the wording matches the job description, especially when certain keywords appear with a noticeable frequency.
