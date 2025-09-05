@@ -31,7 +31,7 @@ if uploaded_file is not None:
     # Pass the threshold as a query‑param (FastAPI will ignore it, but we
     # can read it in the endpoint if we ever want to make it dynamic)
     resp = requests.post(
-        f"{BASE_URL}/analyze?min_count={min_occurrences}",
+        f"http://localhost:{backend_port}/analyze?min_count={min_occurrences}",
         files=files,
     )
     if resp.status_code == 200:
