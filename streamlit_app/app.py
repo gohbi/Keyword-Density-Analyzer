@@ -54,32 +54,18 @@ uploaded_file = st.file_uploader(
 # ----------------------------------------------------------------------
 def analyze_file(file_bytes: bytes, filename: str) -> list[dict]:
     """
-    Sends the uploaded file to the FastAPI /analyze endpoint.
-    Returns the parsed JSON response (or raises an exception).
+    POST the file to the FastAPI ``/analyze`` endpoint.
+    Returns the JSON list produced by the backend, where each element
+    contains ``word``, ``count`` and ``density``.
     """
-    url = f"{BASE_URL}/analyze?min_count={min_occurrences}"
-    files = {"file": (filename, file_bytes)}
-    # Using httpx (sync client) – you could also use ``requests`` if you prefer.
-    with httpx.Client(timeout=30.0) as client:
-        resp = client.post(url, files=files)
-        resp.raise_for_status()               # will raise for 4xx/5xx
-        return resp.json()                    # list of dicts
-
-
-#--- Previous Backend code----
-# Render injects the FastAPI port via $FASTAPI_PORT;
-    # default to 8501 for local development.
-'''
     backend_port = os.getenv("FASTAPI_PORT", "8501")
-    url = f"http://localhost:{backend_port}/analyze"
-    
+    url = f"http://localhost:{backend_port}/analyze?min_count={min_occurrences}"
     files = {"file": (filename, file_bytes)}
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(url, files=files)
-        resp.raise_for_status()
-        return resp.json()
-'''
-#----- Backend close----
+        resp.raise_for_status()          # raises for 4xx/5xx
+        return resp.json()               # list of dicts
+
 
 
 
