@@ -8,7 +8,7 @@ A lightweight, privacy‑first web app that lets you upload a document (TXT, PDF
 
 Table of Contents
 
-1. [/#Project Overview](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-project-overview)
+1. [Project Overview](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-project-overview)
 2. [The Why](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-why-this-project-exists)
 3. [Key Features](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-key-features)
 4. [Architecture Diagram](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-architecture)
@@ -60,19 +60,18 @@ All processing runs inside the container – no external APIs, no telemetry. Enc
 |Docker‑first |	One‑step build (docker build .) produces a ready‑to‑run image. |
 |Health‑check endpoint |	Render’s auto‑restart uses GET /. |
 
-## 🔨 Architecture
-
-┌─────────────────────┐          ┌─────────────────────┐
-│   Streamlit Front‑   │  HTTP    │   FastAPI Backend   │
-│   end (UI)          │◀──────▶ │   (uvicorn)         │
-│   - Slider (min)    │          │   - /analyze        │
-│   - File uploader   │          │   - / (health)      │
-│   - Dataframe view │          │   - text_extractor   │
-└─────────────────────┘          └─────────────────────┘
-          ▲                                 ▲
-          │                                 │
-          │ Docker container (single image) │
-          └─────────────────────────────────┘
+## 🔨 Architecture   
+      ┌─────────────────────┐          ┌─────────────────────┐
+      │   Streamlit Front‑   │  HTTP   │  FastAPI Backend    │
+      │   end (UI)          │◀──────▶ │   (uvicorn)         │
+      │   - Slider (min)    │          │   - /analyze        │
+      │   - File uploader   │          │   - / (health)      │
+      │   - Dataframe view  │          │  - text_extractor   │
+      └─────────────────────┘          └─────────────────────┘
+                ▲                                 ▲
+                │                                 │
+                │ Docker container (single image) │
+                └─────────────────────────────────┘
 
           
 All components run in the same container, sharing the same virtual environment.
