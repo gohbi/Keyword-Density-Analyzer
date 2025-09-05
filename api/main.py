@@ -6,11 +6,13 @@ import pathlib
 import pandas as pd
 import logging
 import json
+from typing import List, Dict
+
 
 # ----------------------------------------------------------------------
 # Existing utilities
 # ----------------------------------------------------------------------
-from .utils import get_spacy_nlp          # lazy spaCy loader (unchanged)
+from .utils import get_spacy_nlp, tokenize, compute_frequencies         # lazy spaCy loader (unchanged)
 from .text_extractor import read_file      # <-- NEW import
 
 app = FastAPI(title="Keyword Density Analyzer")
@@ -27,7 +29,7 @@ def create_spacy_dir():
 # ----------------------------------------------------------------------
 # Helper: compute keyword density
 # ----------------------------------------------------------------------
-KEYWORDS = ["privacy", "encryption", "proton", "vpn", "security"]  # <-- edit as needed
+
 
 def _keyword_density(tokens: list[str], keywords: list[str]) -> dict[str, float]:
     """
@@ -63,72 +65,36 @@ def _clear_previous_output():
 # ----------------------------------------------------------------------
 # Endpoint – analyse a single uploaded file
 # ----------------------------------------------------------------------
-@app.post("/analyze")
+# ------------------------------------------------------------------
+# Configurable threshold – can be overridden with an env‑var.
+# ------------------------------------------------------------------
+MIN_COUNT = int(os.getenv("LUMO_MIN_WORD_COUNT", "3"))   # default = 3
+
+
+@app.post("/analyze", response_model=List[Dict])
 async def analyze(file: UploadFile = File(...)):
     """
-    1️⃣  Read raw bytes from the uploaded file.
-    2️⃣  Convert to plain text (supports PDF, DOCX, ODT, TXT).
-    3️⃣  Run spaCy tokenisation.
-    4️⃣  Compute keyword density for the list above.
-    5️⃣  Persist the JSON result (overwrites previous output).
-    6️⃣  Return the JSON payload.
+    Receive a text file, compute word frequencies, and return the
+    filtered list as JSON.
     """
+    # 1️⃣ Read the file (expect UTF‑8 text)
     try:
-        # --------------------------------------------------------------
-        # 1️⃣  Raw bytes
-        # --------------------------------------------------------------
-        raw_bytes = await file.read()
+        raw = await file.read()
+        text = raw.decode("utf-8")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unable to read uploaded file: {exc}"
+        )
 
-        # --------------------------------------------------------------
-        # 2️⃣  Plain‑text extraction (uses the new helper)
-        # --------------------------------------------------------------
-        text = read_file(raw_bytes, file.filename)
+    # 2️⃣ Tokenise the whole document
+    tokens = tokenize(text)
 
-        # --------------------------------------------------------------
-        # 3️⃣  spaCy processing (unchanged)
-        # --------------------------------------------------------------
-        nlp = get_spacy_nlp()
-        doc = nlp(text)
+    # 3️⃣ Compute frequencies, applying the MIN_COUNT filter
+    result = compute_frequencies(tokens, min_count=MIN_COUNT)
 
-        # Keep only meaningful tokens (same filter you already used)
-        tokens = [
-            t.text.lower()
-            for t in doc
-            if not t.is_stop and not t.is_punct and not t.is_space
-        ]
-
-        if not tokens:
-            return JSONResponse(
-                status_code=200,
-                content={"message": "No meaningful tokens found in the document."},
-            )
-
-        # --------------------------------------------------------------
-        # 4️⃣  Keyword‑density calculation
-        # --------------------------------------------------------------
-        density = _keyword_density(tokens, KEYWORDS)
-
-        # --------------------------------------------------------------
-        # 5️⃣  Build the response payload
-        # --------------------------------------------------------------
-        total_words = len(tokens)
-        result = {
-            "filename": file.filename,
-            "total_words": total_words,
-            "keyword_density": density,
-        }
-
-        # --------------------------------------------------------------
-        # 6️⃣  Persist the JSON (overwrites previous output)
-        # --------------------------------------------------------------
-        _clear_previous_output()
-        out_path = OUTPUT_DIR / "latest.json"
-        out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
-
-        # --------------------------------------------------------------
-        # 7️⃣  Return to the caller
-        # --------------------------------------------------------------
-        return JSONResponse(status_code=200, content=result)
+    # 4️⃣ Return JSON that Streamlit will turn into a table
+    return JSONResponse(content=result)
 
     except Exception as exc:               # pragma: no cover
         logging.exception("Analysis failed")
