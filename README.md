@@ -1,9 +1,26 @@
-# Keyword-Density-Analyzer
-Easily find the keyword density of a given document. Helps with resume optimization. 
-A lightweight Python app that extracts text from PDFs/DOCX files, calculates how often each word appears, and presents the results as a clear density report.
+# Keyword-Density-Analyzer 
+(Built with AI)
+Version 1.2 – released Sep 5 2025
+A lightweight, privacy‑first web app that lets you upload a document (TXT, PDF, DOCX, ODT) and instantly see a table of word frequencies and densities. Built with FastAPI (backend) and Streamlit (frontend) and packaged for easy deployment on Render (or any Docker host). This application is for individuals that want to use keyword density to better configure their resumes for each job application. 
 
 ### Visit the functional app:
 [Key Density Analyzer](https://keyword-analyzer-3i9f.onrender.com)
+
+Table of Contents
+
+    [Project Overview](/#Project Overview)
+    Key Features
+    Architecture Diagram
+    Getting Started (Local)
+    Deploying to Render (or any Docker host)
+    API Reference
+    Frontend Details (Streamlit UI)
+    File‑type handling & text extraction
+    Configuration & Environment Variables
+    Testing & Development Tips
+    Troubleshooting
+    License & Credits
+
 
 ## 📄 Project Overview
 
