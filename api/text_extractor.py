@@ -1,76 +1,69 @@
-# --------------------------------------------------------------
+# ──────────────────────────────────────────────────────────────
 # api/text_extractor.py
-# --------------------------------------------------------------
-"""
-Utility module that turns a binary upload (PDF, DOCX, ODT, TXT)
-into plain‑text.  The public entry point is ``read_file``.
-"""
-
-from __future__ import annotations
-
+# ──────────────────────────────────────────────────────────────
 import io
-from typing import Final
+import pathlib
+import chardet
+from fastapi import HTTPException, UploadFile
 
-# ------------------------------------------------------------------
-# Public API – what other modules may import
-# ------------------------------------------------------------------
-__all__: Final = ["read_file"]
-
-
-# ------------------------------------------------------------------
-# Private helpers – each one imports its heavy dependency lazily
-# ------------------------------------------------------------------
-def _read_pdf(data: bytes) -> str:
-    """Extract plain text from a PDF binary blob."""
-    # Import inside the function – avoids ImportError at module import time
-    from pdfminer.high_level import extract_text as _pdf_extract_text
-
-    out = io.StringIO()
-    _pdf_extract_text(io.BytesIO(data), out)
-    return out.getvalue()
+# ---------- TXT ----------
+def _read_txt(raw: bytes) -> str:
+    """Robust UTF‑8 → fallback → replace."""
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        guess = chardet.detect(raw)
+        enc = guess["encoding"] or "latin-1"
+        return raw.decode(enc, errors="replace")
 
 
-def _read_docx(data: bytes) -> str:
-    """Extract plain text from a DOCX binary blob."""
+# ---------- PDF ----------
+def _read_pdf(raw: bytes) -> str:
+    from pdfminer.high_level import extract_text
+    with io.BytesIO(raw) as f:
+        return extract_text(f)
+
+
+# ---------- DOCX ----------
+def _read_docx(raw: bytes) -> str:
     from docx import Document
-
-    doc = Document(io.BytesIO(data))
-    return "\n".join(p.text for p in doc.paragraphs)
-
-
-def _read_odt(data: bytes) -> str:
-    """Extract plain text from an ODT binary blob."""
-    from odf import text, teletype
-    from odf.opendocument import load as _load_odf
-
-    odt = _load_odf(io.BytesIO(data))
-    paras = odt.getElementsByType(text.P)
-    return "\n".join(teletype.extractText(p) for p in paras)
+    with io.BytesIO(raw) as f:
+        doc = Document(f)
+        return "\n".join(p.text for p in doc.paragraphs)
 
 
-def _read_txt(data: bytes) -> str:
-    """Decode a UTF‑8/ASCII text file."""
-    return data.decode(errors="replace")
+# ---------- ODT ----------
+def _read_odt(raw: bytes) -> str:
+    from odf.opendocument import load
+    from odf.text import P
+    with io.BytesIO(raw) as f:
+        odt = load(f)
+        paras = odt.getElementsByType(P)
+        return "\n".join(p.firstChild.data if p.firstChild else "" for p in paras)
 
 
-# ------------------------------------------------------------------
-# Public wrapper
-# ------------------------------------------------------------------
-def read_file(file_bytes: bytes, filename: str) -> str:
+# ---------- Dispatcher ----------
+async def read_file(upload: UploadFile) -> str:
     """
-    Dispatch to the correct extractor based on the file extension.
-    Supported extensions (case‑insensitive): pdf, docx, doc, odt, txt.
-    Raises ``ValueError`` for anything else.
+    Detect the file extension and return plain‑text.
+    Raises HTTPException(400) for unsupported types.
     """
-    ext = filename.lower().rsplit(".", 1)[-1]
+    raw = await upload.read()
+    ext = pathlib.Path(upload.filename).suffix.lower()
 
-    if ext == "pdf":
-        return _read_pdf(file_bytes)
-    if ext in ("docx", "doc"):
-        return _read_docx(file_bytes)
-    if ext == "odt":
-        return _read_odt(file_bytes)
-    if ext == "txt":
-        return _read_txt(file_bytes)
+    if ext == ".txt":
+        return _read_txt(raw)
+    if ext == ".pdf":
+        return _read_pdf(raw)
+    if ext == ".docx":
+        return _read_docx(raw)
+    if ext == ".odt":
+        return _read_odt(raw)
 
-    raise ValueError(f"Unsupported file type: {filename}")
+    raise HTTPException(
+        status_code=400,
+        detail=(
+            f"Unsupported file type '{ext}'. "
+            "Supported extensions: .txt, .pdf, .docx, .odt"
+        ),
+    )
