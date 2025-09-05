@@ -11,16 +11,16 @@ Table of Contents
 1. [/#Project Overview](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-project-overview)
 2. [The Why](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-why-this-project-exists)
 3. [Key Features](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-key-features)
-4. [Architecture Diagram](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-architecture-diagram)
-5. [Getting Started (Local)](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-getting-started-(local))
-6. [Deploying to Render (or any Docker host)](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-deploying-to-render(or-any-docker-host))
+4. [Architecture Diagram](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-architecture)
+5. [Getting Started (Local)](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-getting-started-local)
+6. [Deploying to Render (or any Docker host)](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-deploying-to-render-or-any-docker-host)
 7. [API Reference](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-api-reference)
-8. [Frontend Details (Streamlit UI)](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-frontend-details-(streamlit-ui))
-9. [File‑type handling & text extraction](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-file-type-handling-&-text-execution)
-10. [Configuration & Environment Variables](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-configuration-&-Environment-Variables)
-11. [Testing & Development Tips](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-Testing-&-Development-Tips)
-12. [Troubleshooting](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-Troubleshooting)
-13. [License & Credits](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-License-&-Credits)
+8. [Frontend Details (Streamlit UI)](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#frontend-details-streamlit-ui)
+9. [File‑type handling & text extraction](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-filetype-handling--text-extraction)
+10. [Configuration & Environment Variables](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-configuration--environment-variables)
+11. [Testing & Development Tips](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-testing--development-tips)
+12. [Troubleshooting](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#%EF%B8%8F-troubleshooting)
+13. [License & Credits](https://github.com/gohbi/Keyword-Density-Analyzer/blob/main/README.md#-license--credits)
 
 
 ## 📄 Project Overview
@@ -73,6 +73,8 @@ All processing runs inside the container – no external APIs, no telemetry. Enc
           │                                 │
           │ Docker container (single image) │
           └─────────────────────────────────┘
+
+          
 All components run in the same container, sharing the same virtual environment.
 
 
